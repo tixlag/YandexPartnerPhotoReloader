@@ -38,7 +38,7 @@ SKU_COLUMN_CANDIDATES = [
 
 @dataclass
 class Cabinet:
-    business_id: str  # aka supplierId shown on settings card (e.g., 31891951)
+    business_id: str 
     name: str
     dashboard_href: str  # /business/{id}/dashboard?view=marketplace
 
@@ -114,7 +114,7 @@ class Storage:
 # ======================
 # Selenium driver wrapper
 # ======================
-class YandexMarketDriver:
+class YandexMarketPhotoReuploadeDriver:
     def __init__(self, log_fn):
         self.driver = None
         self.actions = None
@@ -466,7 +466,7 @@ class ProcessWorker(QtCore.QThread):
     finished_signal = QtCore.pyqtSignal()
     captcha_signal = QtCore.pyqtSignal(str)
 
-    def __init__(self, driver: YandexMarketDriver, storage: Storage, campaign_id: str, skus: List[str], skip_processed: bool):
+    def __init__(self, driver: YandexMarketPhotoReuploadeDriver, storage: Storage, campaign_id: str, skus: List[str], skip_processed: bool):
         super().__init__()
         self.driver = driver
         self.storage = storage
@@ -539,11 +539,11 @@ class ProcessWorker(QtCore.QThread):
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Yandex Market Parser")
+        self.setWindowTitle("Yandex Market Photo Reuploade")
         self.resize(980, 720)
 
         self.storage = Storage()
-        self.driver = YandexMarketDriver(self.log)
+        self.driver = YandexMarketPhotoReuploadeDriver(self.log)
         self.worker: Optional[ProcessWorker] = None
         self.campaign_id: Optional[str] = None
         self.current_business_id: Optional[str] = None
