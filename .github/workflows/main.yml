@@ -1,0 +1,47 @@
+name: Build Windows executable
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install build deps
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      # - name: Ensure chromedriver (optional)
+      #   # можно либо не делать — можно полагаться на Selenium Manager в рантайме,
+      #   # либо загрузить chromedriver и добавить в dist.
+      #   run: |
+      #     mkdir -p drivers
+      #     curl -L -sS -o drivers/chromedriver.exe https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/last-known-good-versions/chromedriver-win64.zip || echo "skipping driver download"
+
+      - name: Build with PyInstaller
+        shell: bash
+        run: |
+          # Очистим старые сборки
+          rm -rf build dist
+          pyinstaller --noconfirm --clean --onefile \
+            --add-data "processed_items.sqlite3;." \
+            --add-data "drivers/chromedriver.exe;drivers" \
+            yandex_partner_reuploader.py
+
+      - name: Create artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: YPPR
+          path: dist/*.exe
