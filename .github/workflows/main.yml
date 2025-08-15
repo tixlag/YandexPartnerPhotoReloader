@@ -23,12 +23,12 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      # - name: Ensure chromedriver (optional)
-      #   # можно либо не делать — можно полагаться на Selenium Manager в рантайме,
-      #   # либо загрузить chromedriver и добавить в dist.
-      #   run: |
-      #     mkdir -p drivers
-      #     curl -L -sS -o drivers/chromedriver.exe https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/last-known-good-versions/chromedriver-win64.zip || echo "skipping driver download"
+      - name: Ensure chromedriver (optional)
+        # можно либо не делать — можно полагаться на Selenium Manager в рантайме,
+        # либо загрузить chromedriver и добавить в dist.
+        run: |
+          mkdir -p drivers
+          curl -L -sS -o drivers/chromedriver.exe https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/last-known-good-versions/chromedriver-win64.zip || echo "skipping driver download"
 
       - name: Build with PyInstaller
         shell: bash
@@ -36,7 +36,6 @@ jobs:
           # Очистим старые сборки
           rm -rf build dist
           pyinstaller --noconfirm --clean --onefile \
-            --add-data "processed_items.sqlite3;." \
             --add-data "drivers/chromedriver.exe;drivers" \
             yandex_partner_reuploader.py
 
