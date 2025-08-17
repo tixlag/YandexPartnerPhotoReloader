@@ -35,13 +35,13 @@ jobs:
         run: |
           # Очистим старые сборки
           rm -rf build dist
-          pyinstaller --noconfirm --clean --onefile --noconsole ^
-            --add-data "drivers/chromedriver.exe;drivers" ^
-            --hidden-import pandas ^
-            --hidden-import numpy ^
-            --hidden-import openpyxl ^
-            --hidden-import PyQt5 ^
-            --hidden-import selenium ^
+          pyinstaller --noconfirm --clean --onefile --noconsole /
+            --add-data "drivers/chromedriver.exe;drivers" /
+            --hidden-import pandas /
+            --hidden-import numpy /
+            --hidden-import openpyxl /
+            --hidden-import PyQt5 /
+            --hidden-import selenium /
             yandex_partner_reuploader.py
 
       - name: Create artifact
