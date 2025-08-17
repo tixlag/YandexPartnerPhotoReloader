@@ -37,6 +37,10 @@ jobs:
           rm -rf build dist
           pyinstaller --noconfirm --clean --onefile \
             --add-data "drivers/chromedriver.exe;drivers" \
+            pyinstaller --onefile --noconsole \
+            --hidden-import pandas \
+            --hidden-import numpy \
+            --hidden-import openpyxl \
             yandex_partner_reuploader.py
 
       - name: Create artifact
