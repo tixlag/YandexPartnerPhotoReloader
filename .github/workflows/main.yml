@@ -28,7 +28,6 @@ jobs:
       - name: Build with PyInstaller
         run: >
           pyinstaller --noconfirm --clean --onefile --noconsole
-          --add-data "drivers/chromedriver.exe;drivers"
           --hidden-import pandas
           --hidden-import numpy
           --hidden-import openpyxl
