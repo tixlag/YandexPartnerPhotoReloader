@@ -1,51 +1,44 @@
-name: Build Windows executable
+name: Build EXE
 
 on:
   push:
     branches: [ master ]
-  workflow_dispatch:
 
 jobs:
-  build-windows:
+  build:
     runs-on: windows-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
-      - name: Install build deps
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements.txt
-          pip install pyinstaller
+          pip install --upgrade pip
+          pip install pandas numpy openpyxl selenium pyqt5
 
-      - name: Ensure chromedriver (optional)
-        # можно либо не делать — можно полагаться на Selenium Manager в рантайме,
-        # либо загрузить chromedriver и добавить в dist.
-        run: |
-          mkdir -p drivers
-          curl -L -sS -o drivers/chromedriver.exe https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/last-known-good-versions/chromedriver-win64.zip || echo "skipping driver download"
+      - name: Install PyInstaller
+        run: pip install pyinstaller
 
       - name: Build with PyInstaller
-        shell: bash
-        run: |
-          # Очистим старые сборки
-          rm -rf build dist
-          pyinstaller --noconfirm --clean --onefile --noconsole \
-            --add-data "drivers/chromedriver.exe;drivers" \
-            --hidden-import pandas \
-            --hidden-import numpy \
-            --hidden-import openpyxl \
-            --hidden-import PyQt5 \
-            --hidden-import selenium \
-            yandex_partner_reuploader.py
+        run: >
+          pyinstaller --noconfirm --clean --onefile --noconsole
+          --add-data "drivers/chromedriver.exe;drivers"
+          --hidden-import pandas
+          --hidden-import numpy
+          --hidden-import openpyxl
+          --hidden-import PyQt5
+          --hidden-import selenium
+          yandex_partner_reuploader.py
+        shell: pwsh
 
-      - name: Create artifact
+      - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
         with:
-          name: YPPR
-          path: dist/*.exe
+          name: yandex-partner-reuploader
+          path: dist/yandex_partner_reuploader.exe
