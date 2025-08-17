@@ -36,6 +36,70 @@ SKU_COLUMN_CANDIDATES = [
     "Ваш SKU *", "Ваш SKU", "SKU", "Артикул", "Артикул продавца", "Article"
 ]
 
+def get_chrome_version():
+    """Определяем версию установленного Chrome"""
+    try:
+        # Для Windows
+        process = subprocess.run(
+            r'reg query "HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon" /v version',
+            capture_output=True, text=True, shell=True
+        )
+        output = process.stdout
+        if "version" in output.lower():
+            return output.strip().split()[-1]
+    except Exception as e:
+        print(f"Не удалось получить версию Chrome: {e}")
+    return None
+
+
+def download_chromedriver(chrome_version, driver_dir):
+    """Скачиваем chromedriver под версию Chrome"""
+    major_version = chrome_version.split(".")[0]
+
+    # Узнаем последнюю совместимую версию драйвера
+    url = f"https://chromedriver.storage.googleapis.com/LATEST_RELEASE_{major_version}"
+    response = requests.get(url)
+    driver_version = response.text.strip()
+
+    # Скачиваем zip с драйвером
+    zip_url = f"https://chromedriver.storage.googleapis.com/{driver_version}/chromedriver_win32.zip"
+    zip_path = os.path.join(driver_dir, "chromedriver.zip")
+
+    print(f"Скачиваю ChromeDriver {driver_version}...")
+    with open(zip_path, "wb") as f:
+        f.write(response.content)
+
+    # Распаковываем
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        zip_ref.extractall(driver_dir)
+    os.remove(zip_path)
+
+
+def get_driver():
+    """Возвращает Selenium WebDriver с автоскачиванием chromedriver"""
+    if getattr(sys, 'frozen', False):  # exe через PyInstaller
+        base_path = os.path.dirname(sys.executable)
+    else:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+    driver_dir = os.path.join(base_path, "drivers")
+    os.makedirs(driver_dir, exist_ok=True)
+
+    driver_path = os.path.join(driver_dir, "chromedriver.exe")
+
+    if not os.path.exists(driver_path):
+        chrome_version = get_chrome_version()
+        if not chrome_version:
+            raise RuntimeError("Не удалось определить версию Chrome")
+        download_chromedriver(chrome_version, driver_dir)
+
+    service = Service(driver_path)
+    options = Options()
+    options.add_argument("--start-maximized")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+        # chrome_options.add_argument("--headless=new")  # GUI is needed for captcha; leave commented
+    return webdriver.Chrome(service=service, options=options)
+
 @dataclass
 class Cabinet:
     business_id: str 
@@ -122,12 +186,7 @@ class YandexMarketPhotoReuploadeDriver:
         self.log = log_fn
 
     def start(self):
-        chrome_options = Options()
-        chrome_options.add_argument("--start-maximized")
-        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-        # chrome_options.add_argument("--headless=new")  # GUI is needed for captcha; leave commented
-
-        self.driver = webdriver.Chrome(options=chrome_options)
+        self.driver = get_driver()
         self.actions = ActionChains(self.driver)
         self.wait = WebDriverWait(self.driver, DEFAULT_WAIT)
         self.log("Браузер запущен")
