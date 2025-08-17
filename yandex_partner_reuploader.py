@@ -7,6 +7,9 @@ import sqlite3
 import pickle
 import tempfile
 import threading
+import shutil
+import zipfile
+import requests
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Tuple
 
@@ -16,6 +19,7 @@ from openpyxl import load_workbook
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
