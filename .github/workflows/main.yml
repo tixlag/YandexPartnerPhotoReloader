@@ -20,6 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
+          pip install -r requirements.txt
           pip install pandas numpy openpyxl selenium pyqt5
 
       - name: Install PyInstaller
@@ -28,11 +29,33 @@ jobs:
       - name: Build with PyInstaller
         run: >
           pyinstaller --noconfirm --clean --onefile --noconsole
-          --hidden-import pandas
-          --hidden-import numpy
+          --hidden-import attrs
+          --hidden-import certifi
+          --hidden-import charset-normalizer
+          --hidden-import et_xmlfile
+          --hidden-import h11
+          --hidden-import idna
           --hidden-import openpyxl
+          --hidden-import outcome
+          --hidden-import pandas
           --hidden-import PyQt5
+          --hidden-import PyQt5-Qt5
+          --hidden-import PyQt5_sip
+          --hidden-import PySocks
+          --hidden-import python-dateutil
+          --hidden-import pytz
+          --hidden-import requests
           --hidden-import selenium
+          --hidden-import six
+          --hidden-import sniffio
+          --hidden-import sortedcontainers
+          --hidden-import trio
+          --hidden-import trio-websocket
+          --hidden-import typing_extensions
+          --hidden-import tzdata
+          --hidden-import urllib3
+          --hidden-import websocket-client
+          --hidden-import wsproto
           yandex_partner_reuploader.py
         shell: pwsh
 
