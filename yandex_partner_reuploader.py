@@ -81,28 +81,29 @@ def download_chromedriver(chrome_version, driver_dir):
 
 def get_driver():
     """Возвращает Selenium WebDriver с автоскачиванием chromedriver"""
-    if getattr(sys, 'frozen', False):  # exe через PyInstaller
-        base_path = os.path.dirname(sys.executable)
-    else:
-        base_path = os.path.dirname(os.path.abspath(__file__))
+    # if getattr(sys, 'frozen', False):  # exe через PyInstaller
+    #     base_path = os.path.dirname(sys.executable)
+    # else:
+    #     base_path = os.path.dirname(os.path.abspath(__file__))
+    #
+    # driver_dir = os.path.join(base_path, "drivers")
+    # os.makedirs(driver_dir, exist_ok=True)
+    #
+    # driver_path = os.path.join(driver_dir, "chromedriver.exe")
+    #
+    # if not os.path.exists(driver_path):
+    #     chrome_version = get_chrome_version()
+    #     if not chrome_version:
+    #         raise RuntimeError("Не удалось определить версию Chrome")
+    #     download_chromedriver(chrome_version, driver_dir)
 
-    driver_dir = os.path.join(base_path, "drivers")
-    os.makedirs(driver_dir, exist_ok=True)
-
-    driver_path = os.path.join(driver_dir, "chromedriver.exe")
-
-    if not os.path.exists(driver_path):
-        chrome_version = get_chrome_version()
-        if not chrome_version:
-            raise RuntimeError("Не удалось определить версию Chrome")
-        download_chromedriver(chrome_version, driver_dir)
-
-    service = Service(driver_path)
+    # service = Service(driver_path)
     options = Options()
     options.add_argument("--start-maximized")
     options.add_argument("--disable-blink-features=AutomationControlled")
-        # chrome_options.add_argument("--headless=new")  # GUI is needed for captcha; leave commented
-    return webdriver.Chrome(service=service, options=options)
+    # chrome_options.add_argument("--headless=new")  # GUI is needed for captcha; leave commented
+    # return webdriver.Chrome(service=service, options=options)
+    return webdriver.Chrome(options=options)
 
 @dataclass
 class Cabinet:
@@ -182,7 +183,7 @@ class Storage:
 # ======================
 # Selenium driver wrapper
 # ======================
-class YandexMarketPhotoReuploadeDriver:
+class YandexMarketPhotoReloaderDriver:
     def __init__(self, log_fn):
         self.driver = None
         self.actions = None
@@ -529,7 +530,7 @@ class ProcessWorker(QtCore.QThread):
     finished_signal = QtCore.pyqtSignal()
     captcha_signal = QtCore.pyqtSignal(str)
 
-    def __init__(self, driver: YandexMarketPhotoReuploadeDriver, storage: Storage, campaign_id: str, skus: List[str], skip_processed: bool):
+    def __init__(self, driver: YandexMarketPhotoReloaderDriver, storage: Storage, campaign_id: str, skus: List[str], skip_processed: bool):
         super().__init__()
         self.driver = driver
         self.storage = storage
@@ -602,11 +603,16 @@ class ProcessWorker(QtCore.QThread):
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Yandex Market Photo Reuploade")
+        self.setWindowTitle("Yandex Market Photo Reloader")
         self.resize(980, 720)
+        self.setWindowFlags(
+            Qt.WindowStaysOnTopHint |  # Всегда поверх других окон
+            # Qt.FramelessWindowHint |   # Без рамки (опционально)
+            Qt.Tool                   # Поведение как инструмент
+        )
 
         self.storage = Storage()
-        self.driver = YandexMarketPhotoReuploadeDriver(self.log)
+        self.driver = YandexMarketPhotoReloaderDriver(self.log)
         self.worker: Optional[ProcessWorker] = None
         self.campaign_id: Optional[str] = None
         self.current_business_id: Optional[str] = None
@@ -729,9 +735,12 @@ class MainWindow(QtWidgets.QMainWindow):
             # self.btn_scan_cabinets.setEnabled(True)
             self.btn_pick_campaign.setEnabled(True)
             self.btn_load_xlsx.setEnabled(True)
-            self.driver.load_cookies()
+            loaded = self.driver.load_cookies()
             time.sleep(2)
-            self.on_scan_cabinets()
+            if loaded:
+                self.on_scan_cabinets()
+            else:
+                self.driver.open_home()
         except WebDriverException as e:
             self.log(f"Не удалось запустить браузер: {e}")
 
